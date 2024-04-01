@@ -51,3 +51,33 @@ jobs:
     - name: Upload to S3
       run: |
         aws s3 cp space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip ${{ vars.S3_BUCKET_PATH }}/space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Initialize Terraform
+      working-directory: terraform
+      run: terraform init
+
+    - name: Apply Terraform
+      working-directory: terraform    
+      env:
+        TF_VAR_state_bucket: ${{ vars.STATE_BUCKET }}
+        TF_VAR_state_key: ${{ vars.STATE_KEY }}
+        TF_VAR_path_name: ${{ vars.PATH_NAME }}
+        TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+        TF_VAR_space_fetch_version: ${{ steps.extract_tag.outputs.TAG_NAME }}
+        TF_VAR_lambda_iam_role: ${{ secrets.LAMBDA_IAM_ROLE }}        
+      run: terraform plan -out plan
+
+
+    - name: Apply Terraform
+      working-directory: terraform    
+      env:
+        TF_VAR_state_bucket: ${{ vars.STATE_BUCKET }}
+        TF_VAR_state_key: ${{ vars.STATE_KEY }}
+        TF_VAR_path_name: ${{ vars.PATH_NAME }}
+        TF_VAR_bucket_name: ${{ vars.BUCKET_NAME }}
+        TF_VAR_space_fetch_version: ${{ steps.extract_tag.outputs.TAG_NAME }}
+        TF_VAR_lambda_iam_role: ${{ secrets.LAMBDA_IAM_ROLE }}
+      run: terraform apply -auto-approve plan
