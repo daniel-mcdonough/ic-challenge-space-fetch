@@ -19,7 +19,11 @@ jobs:
     
     - name: Extract tag name
       id: extract_tag
-      run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+      run: |
+        COMMIT_SHA="${{ github.event.workflow_run.head_commit.id }}"
+        TAG_NAME=$(git tag --points-at $COMMIT_SHA)
+        echo "::set-output name=TAG_NAME::$TAG_NAME"
+      shell: bash
       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
