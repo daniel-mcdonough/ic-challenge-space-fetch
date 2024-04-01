@@ -1,0 +1,53 @@
+name: package-for-lambda
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+
+  package:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - name: Extract tag name
+      id: extract_tag
+      run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
+
+    - name: Install requirements
+      run: |
+        pip install -r requirements.txt -t ./package
+
+    - name: Add to package directory
+      run: |
+        cp -R ./*.py ./package/
+
+    - name: Zip files
+      run: |
+        cd package
+        zip -r "../space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip" .
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}
+        path: space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: us-east-2
+
+    - name: Upload to S3
+      run: |
+        aws s3 cp space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip ${{ vars.S3_BUCKET_PATH }}/space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip

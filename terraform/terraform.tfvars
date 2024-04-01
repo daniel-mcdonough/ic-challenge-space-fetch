@@ -1,0 +1,7 @@
+# zone = "yeetware.io"
+# postgres_password = "ostienaosietn"
+# space_fetch_version = "v0.1.8"
+# file_name    = "spacex_data.json"
+# # bucket_name  = "daniel-intercax"
+# path_name    = "space_fetch"
+# object_name  = "spacex_data.json"
