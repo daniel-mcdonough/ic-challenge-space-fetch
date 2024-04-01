@@ -1,10 +1,4 @@
 
-variable "postgres_password" {
-  description = "postgres password"
-  type = string
-  sensitive = true
-}
-
 variable "lambda_iam_role" {
   description = "lambda iam role"
   type = string
