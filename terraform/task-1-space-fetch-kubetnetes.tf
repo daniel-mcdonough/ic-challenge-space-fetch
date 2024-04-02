@@ -10,12 +10,12 @@
 #   }
 
 #   data = {
-#     AWS_ACCESS_KEY_ID     = ""
-#     AWS_SECRET_ACCESS_KEY = ""
+#     AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
+#     AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
 #   }
 # }
 
-##### The kubernetes cron job. It launches the space fetch container daily. You can bump the version by changing the space_fetch_version variable in Terraform.
+#### The kubernetes cron job. It launches the space fetch container daily. You can bump the version by changing the space_fetch_version variable in Terraform. This allows for easy integration with automated deployments like Github or Octopus.
 
 # resource "kubernetes_cron_job" "space_fetch_cronjob" {
 #   metadata {
