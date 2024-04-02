@@ -1,6 +1,9 @@
 #This is some boilerplate Terraform to deploy space-fetch from Github's
 #container registry to a Kubernetes cluster. 
 
+
+##### AWS keys to upload to S3. This can be changed to use OIDC.
+
 # resource "kubernetes_secret" "aws_credentials" {
 #   metadata {
 #     name = "aws-credentials"
@@ -12,65 +15,66 @@
 #   }
 # }
 
-# resource "kubernetes_deployment" "space-fetch" {
+##### The kubernetes cron job. It launches the space fetch container daily. You can bump the version by changing the space_fetch_version variable in Terraform.
+
+# resource "kubernetes_cron_job" "space_fetch_cronjob" {
 #   metadata {
-#     name = "space-fetch"
+#     name = "space-fetch-cronjob"
 #   }
 
 #   spec {
-#     replicas = 2
+#     schedule = "0  0 * * *"
 
-#     selector {
-#       match_labels = {
-#         app = "space-fetch"
-#       }
-#     }
-
-#     template {
+#     job_template {
 #       metadata {
-#         labels = {
-#           app = "space-fetch"
-#         }
+        
 #       }
-
 #       spec {
-#         container {
-#           image = "ghcr.io/daniel-mcdonough/space-fetch:v0.1.7"
-#           name  = "space-fetch"
-
-#           env {
-#             name  = "BUCKET_NAME"
-#             value = "intercax"
+#         template {
+#           metadata {
+            
 #           }
+#           spec {
+#             container {
+#               image = "ghcr.io/daniel-mcdonough/space-fetch:${var.space_fetch_version}"
+#               name  = "space-fetch"
 
-#           env {
-#             name  = "OBJECT_NAME"
-#             value = "space-fetch.json"
-#           }
+#               env {
+#                 name  = "BUCKET_NAME"
+#                 value = "${var.bucket_name}"
+#               }
 
-#           env {
-#             name  = "PATH_NAME"
-#             value = "space-fetch"
-#           }          
+#               env {
+#                 name  = "OBJECT_NAME"
+#                 value = "${var.object_name}"
+#               }
 
-#           env {
-#             name = "AWS_ACCESS_KEY_ID"
-#             value_from {
-#               secret_key_ref {
-#                 name = kubernetes_secret.aws_credentials.metadata[0].name
-#                 key  = ""
+#               env {
+#                 name  = "PATH_NAME"
+#                 value = "${var.path_name}"
+#               }
+
+#               env {
+#                 name = "AWS_ACCESS_KEY_ID"
+#                 value_from {
+#                   secret_key_ref {
+#                     name = kubernetes_secret.aws_credentials.metadata[0].namee
+#                     key  = "aws-access-key-id"
+#                   }
+#                 }
+#               }
+
+#               env {
+#                 name = "AWS_SECRET_ACCESS_KEY"
+#                 value_from {
+#                   secret_key_ref {
+#                     name = kubernetes_secret.aws_credentials.metadata[0].name
+#                     key  = "aws-secret-access-key"
+#                   }
+#                 }
 #               }
 #             }
-#           }
-
-#           env {
-#             name = "AWS_SECRET_ACCESS_KEY"
-#             value_from {
-#               secret_key_ref {
-#                 name = kubernetes_secret.aws_credentials.metadata[0].name
-#                 key  = ""
-#               }
-#             }
+#             restart_policy = "OnFailure"
 #           }
 #         }
 #       }
