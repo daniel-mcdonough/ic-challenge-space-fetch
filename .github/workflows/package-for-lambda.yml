@@ -18,6 +18,7 @@ jobs:
       with:
         python-version: '3.10'
 
+    #Get the release tag to be used for naming the .zip package
     - name: Extract tag name
       id: extract_tag
       run: echo "::set-output name=TAG_NAME::${GITHUB_REF#refs/tags/}"
@@ -35,6 +36,7 @@ jobs:
         cd package
         zip -r "../space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip" .
     
+    #Upload to Github's package repository. Optional but can be used by others to pull the zip file
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
@@ -48,10 +50,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
         aws-region: us-east-2
 
+    #Upload package to the specified S3 bucket
     - name: Upload to S3
       run: |
         aws s3 cp space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip ${{ vars.S3_BUCKET_PATH }}/space-fetch-${{ steps.extract_tag.outputs.TAG_NAME }}.zip
 
+    #This should ideally be in a separate workflow to separate build and delivery from deploy
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
 
